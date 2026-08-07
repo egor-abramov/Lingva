@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package runner;
+
+option go_package = "lingva/api/gen";
+
+import "common.proto";
+
+service CodeRunService {
+  rpc ExecuteCode(stream CodeRunRequest) returns (stream ExecutionResponse);
+}
+
+message CodeRunRequest {
+  oneof payload {
+    InitialSetup setup = 1;
+    string stdin_chunk = 2;
+  }
+}
+
+message InitialSetup {
+  common.Language lang = 1;
+  string code = 2;
+}
+
+message ExecutionResponse {
+  string stdout = 1;
+  string stderr = 2;
+  bool is_finished = 3;
+}

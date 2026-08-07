@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "lingva/api/gen";
+
+enum Language {
+  PYTHON = 0;
+}

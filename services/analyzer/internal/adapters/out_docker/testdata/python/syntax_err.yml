@@ -1,0 +1,13 @@
+input:
+    lang: Python
+    code: |-
+        def calculate_sum(a, b)
+            return a + b
+
+        if calculate_sum(1, 2) > 0
+            print("Positive")
+output:
+    - line: 1
+      column: 25
+      message: "SyntaxError: expected ':'"
+      severity: Error

@@ -1,0 +1,6 @@
+server:
+  port: 8080
+
+grpc_clients:
+  analyzer: "localhost:50051"
+  runner: "localhost:50052"

@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: ./services/gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - RUNNER_TARGET=runner:50052
+      - ANALYZER_TARGET=runner:50051
+    depends_on:
+      - runner
+      - analyzer
+    networks:
+      - lingva
+
+  runner:
+    build:
+      context: .
+      dockerfile: ./services/runner/Dockerfile
+    environment:
+      - GRPC_PORT=50052
+    ports:
+      - "50052:50052"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - lingva
+
+  analyzer:
+    build:
+      context: .
+      dockerfile: ./services/analyzer/Dockerfile
+    environment:
+      - GRPC_PORT=50051
+    ports:
+      - "50051:50051"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - lingva
+
+networks:
+  lingva:
+    driver: bridge

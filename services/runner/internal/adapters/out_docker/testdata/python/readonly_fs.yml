@@ -1,0 +1,16 @@
+input:
+    lang: Python
+    code: |
+        import os
+
+        file_path = "/tmp/hacked.txt"
+        try:
+            with open(file_path, "w") as f:
+                f.write("You have been compromised!")
+            print("File written successfully.")
+        except OSError as e:
+            print(f"OS Error: {e}")
+    stdin: []
+output:
+    - data: |
+        OS Error: [Errno 30] Read-only file system: '/tmp/hacked.txt'

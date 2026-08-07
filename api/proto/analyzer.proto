@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package analyzer;
+
+option go_package = "lingva/api/gen";
+
+import "common.proto";
+
+service CodeAnalyzeService {
+  rpc Analyze(AnalyzeRequest) returns (AnalyzeResponse);
+}
+
+message AnalyzeRequest {
+  common.Language lang = 1;
+  string code = 2;
+}
+
+enum Severity {
+  ERROR = 0;
+  WARNING = 1;
+  INFO = 2;
+}
+
+message Diagnostic {
+  int32 line = 1;
+  int32 column = 2;
+  string message = 3;
+  Severity severity = 4;
+}
+
+message AnalyzeResponse {
+  repeated Diagnostic diagnostics = 1;
+}

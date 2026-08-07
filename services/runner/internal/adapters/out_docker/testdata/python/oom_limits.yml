@@ -1,0 +1,14 @@
+input:
+    lang: Python
+    code: |
+        print("Allocating memory...")
+        huge_array = [0.0] * (10 ** 18)
+        print("If you see this, the memory limit FAILED!")
+    stdin: []
+output:
+    - data: |
+        Allocating memory...
+    - data: |
+        Traceback (most recent call last):
+          File "<string>", line 2, in <module>
+        MemoryError
