@@ -13,6 +13,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	_ "lingva/docs"
+
+	"github.com/go-chi/cors"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type App struct {
@@ -26,12 +31,22 @@ func New(log *slog.Logger, port int, runner gen.CodeRunServiceClient, analyzer g
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
 
 	runHandler := websocket.NewCodeRunHandler(log, runner)
 	analyzeHandler := rest.NewCodeAnalyzeHandler(log, analyzer)
 
 	router.Get("/ws/run", runHandler)
 	router.Post("/rest/analyze", analyzeHandler)
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL(fmt.Sprintf("http://localhost:%d/swagger/doc.json", port))))
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: router,

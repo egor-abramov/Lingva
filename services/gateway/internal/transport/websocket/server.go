@@ -41,6 +41,14 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// @Summary      Run code
+// @Tags         run
+// @Description  Connect to websocket
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} WSResponse
+// @Failure      400 {object} WSResponse
+// @Router       /ws/run [get]
 func NewCodeRunHandler(log *slog.Logger, client gen.CodeRunServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "transport.websocket.NewCodeRunHandler"

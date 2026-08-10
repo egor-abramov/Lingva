@@ -16,6 +16,14 @@ type AnalyzeRequestDTO struct {
 	Code string `json:"Code" validate:"required"`
 }
 
+// @Summary      Code analyzing
+// @Tags         analyze
+// @Accept       json
+// @Produce      json
+// @Param        request body AnalyzeRequestDTO true "Payload"
+// @Success      200 {object} restLib.Response[gen.AnalyzeResponse]
+// @Failure      400 {object} restLib.Response[any]
+// @Router       /rest/analyze [post]
 func NewCodeAnalyzeHandler(log *slog.Logger, analyzer gen.CodeAnalyzeServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.NewAnalyzeHandler"

@@ -14,7 +14,19 @@ tasks:
   build:
     cmds:
       - docker-compose build
+  build-up:
+    cmds:
+      - docker-compose up --build
   test:
     cmds:
       - go test ./... {{.CLI_ARGS}}
-
+  push:
+    vars:
+      MSG: '{{default "fix" .CLI_ARGS}}'
+    cmds:
+      - git add .
+      - git commit -m "{{.MSG}}"
+      - git push -u origin main
+  swag:
+    cmds:
+      - swag init -g ./services/gateway/cmd/main.go -o ./docs --parseDependency --parseInternal

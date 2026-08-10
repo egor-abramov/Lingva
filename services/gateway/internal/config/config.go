@@ -10,6 +10,6 @@ type ServerConfig struct {
 }
 
 type GRPCClientsConfig struct {
-	Analyzer string `yaml:"analyzer" default:"localhost:50051"`
-	Runner   string `yaml:"runner" default:"localhost:50052"`
+	Analyzer string `yaml:"analyzer" env:"ANALYZER_TARGET"`
+	Runner   string `yaml:"runner" env:"RUNNER_TARGET"`
 }

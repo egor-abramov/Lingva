@@ -9,6 +9,9 @@ import (
 	"os/signal"
 )
 
+// @title           Lingva Gateway API
+// @host            localhost:8080
+// @BasePath        /
 func main() {
 	var cfg config.Config
 	cfgLoader.MustLoad("configs/gateway.yml", &cfg)
