@@ -2,11 +2,13 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"lingva/api/gen"
 	restLib "lingva/pkg/rest"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/render"
 )
@@ -14,6 +16,17 @@ import (
 type AnalyzeRequestDTO struct {
 	Lang string `json:"Lang" validate:"required"`
 	Code string `json:"Code" validate:"required"`
+}
+
+func (r *AnalyzeRequestDTO) UnmarshalJSON(data []byte) error {
+	type Alias AnalyzeRequestDTO
+
+	aux := (*Alias)(r)
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	r.Lang = strings.ToUpper(aux.Lang)
+	return nil
 }
 
 // @Summary      Code analyzing
