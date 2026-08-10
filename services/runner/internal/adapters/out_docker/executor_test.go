@@ -5,12 +5,18 @@ import (
 	"lingva/pkg/test"
 	"lingva/services/runner/internal/core/domain"
 	"log/slog"
+	"strings"
 	"testing"
 )
 
 type TestExecutingJob struct {
 	domain.ExecutionJob `yaml:",inline"`
 	Stdin               []string `yaml:"stdin"`
+}
+
+type ExecutionResult struct {
+	Stdout string `yaml:"stdout"`
+	Stderr string `yaml:"stderr"`
 }
 
 func TestDockerSandbox_Run(t *testing.T) {
@@ -20,13 +26,16 @@ func TestDockerSandbox_Run(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	handler := func(req TestExecutingJob) ([]domain.OutputChunk, error) {
+	handler := func(req TestExecutingJob) (ExecutionResult, error) {
 		stdinCh := make(chan string)
 
 		go func() {
 			defer close(stdinCh)
 
 			for _, inputLine := range req.Stdin {
+				if !strings.HasSuffix(inputLine, "\n") {
+					inputLine += "\n"
+				}
 				stdinCh <- inputLine
 			}
 		}()
@@ -35,19 +44,21 @@ func TestDockerSandbox_Run(t *testing.T) {
 
 		outCh, err := runner.Run(ctx, req.ExecutionJob, stdinCh)
 		if err != nil {
-			return nil, err
+			return ExecutionResult{}, err
 		}
 
-		var stdout, stderr []domain.OutputChunk
+		var stdoutB, stderrB strings.Builder
 		for chunk := range outCh {
 			if chunk.IsStdErr {
-				stderr = append(stderr, chunk)
+				stderrB.WriteString(chunk.Data)
 			} else {
-				stdout = append(stdout, chunk)
+				stdoutB.WriteString(chunk.Data)
 			}
 		}
-
-		return append(stdout, stderr...), nil
+		return ExecutionResult{
+			Stdout: stdoutB.String(),
+			Stderr: stderrB.String(),
+		}, nil
 	}
 	test.RunTests(t, handler)
 }

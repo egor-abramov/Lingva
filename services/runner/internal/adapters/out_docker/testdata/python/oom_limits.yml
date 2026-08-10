@@ -6,9 +6,9 @@ input:
         print("If you see this, the memory limit FAILED!")
     stdin: []
 output:
-    - data: |
+    stdout: |
         Allocating memory...
-    - data: |
+    stderr: |
         Traceback (most recent call last):
           File "<string>", line 2, in <module>
         MemoryError

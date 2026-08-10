@@ -10,5 +10,6 @@ input:
             print("FAILED: " + str(e))
     stdin: []
 output:
-    - data: |
+    stdout: |
         FAILED: <urlopen error [Errno -3] Try again>
+    stderr: ""

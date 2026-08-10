@@ -1,54 +1,54 @@
 input:
-    lang: Python
-    code: |-
-        import os, sys
-
-        def MyFunction( ):
-          x=1+2
-          y =  x*5
-          return y
+  lang: Python
+  code: |-
+    import os, sys
+    
+    def MyFunction( ):
+      x=1+2
+      y =  x*5
+      return y
 output:
-    - line: 1
-      column: 1
-      message: "'os' imported but unused"
-      severity: Warning
-    - line: 1
-      column: 1
-      message: "'sys' imported but unused"
-      severity: Warning
-    - line: 1
-      column: 10
-      message: "multiple imports on one line"
-      severity: Info
-    - line: 3
-      column: 1
-      message: "expected 2 blank lines, found 1"
-      severity: Info
-    - line: 3
-      column: 16
-      message: "whitespace after '('"
-      severity: Info
-    - line: 4
-      column: 3
-      message: "indentation is not a multiple of 4"
-      severity: Info
-    - line: 4
-      column: 4
-      message: "missing whitespace around operator"
-      severity: Info
-    - line: 5
-      column: 3
-      message: "indentation is not a multiple of 4"
-      severity: Info
-    - line: 5
-      column: 6
-      message: "multiple spaces after operator"
-      severity: Info
-    - line: 6
-      column: 3
-      message: "indentation is not a multiple of 4"
-      severity: Info
-    - line: 6
-      column: 11
-      message: "no newline at end of file"
-      severity: Info
+  - line: 1
+    column: 1
+    message: "'os' imported but unused"
+    severity: Warning
+  - line: 1
+    column: 1
+    message: "'sys' imported but unused"
+    severity: Warning
+  - line: 1
+    column: 10
+    message: "multiple imports on one line"
+    severity: Info
+  - line: 3
+    column: 1
+    message: "expected 2 blank lines, found 1"
+    severity: Info
+  - line: 3
+    column: 16
+    message: "whitespace after '('"
+    severity: Info
+  - line: 4
+    column: 3
+    message: "indentation is not a multiple of 4"
+    severity: Info
+  - line: 4
+    column: 4
+    message: "missing whitespace around operator"
+    severity: Info
+  - line: 5
+    column: 3
+    message: "indentation is not a multiple of 4"
+    severity: Info
+  - line: 5
+    column: 6
+    message: "multiple spaces after operator"
+    severity: Info
+  - line: 6
+    column: 3
+    message: "indentation is not a multiple of 4"
+    severity: Info
+  - line: 6
+    column: 11
+    message: "no newline at end of file"
+    severity: Info

@@ -1,5 +1,5 @@
 input:
-    lang: Python
-    code: |
-        print("hello world!")
-output: []
+  lang: Python
+  code: |
+    print("hello world!")
+output: [ ]

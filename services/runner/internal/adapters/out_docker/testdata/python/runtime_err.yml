@@ -9,9 +9,9 @@ input:
         print("This line will never be reached.")
     stdin: []
 output:
-    - data: |
+    stdout: |
         Starting calculation...
-    - data: |
+    stderr: |
         Traceback (most recent call last):
           File "<string>", line 5, in <module>
           File "<string>", line 2, in divide

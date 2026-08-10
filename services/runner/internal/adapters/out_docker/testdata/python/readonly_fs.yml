@@ -12,5 +12,6 @@ input:
             print(f"OS Error: {e}")
     stdin: []
 output:
-    - data: |
+    stdout: |
         OS Error: [Errno 30] Read-only file system: '/tmp/hacked.txt'
+    stderr: ""
