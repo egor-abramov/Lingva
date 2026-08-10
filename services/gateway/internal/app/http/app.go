@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	_ "lingva/docs"
+	front "lingva/frontend"
 
 	"github.com/go-chi/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -47,6 +48,16 @@ func New(log *slog.Logger, port int, runner gen.CodeRunServiceClient, analyzer g
 	router.Post("/rest/analyze", analyzeHandler)
 	router.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(fmt.Sprintf("http://localhost:%d/swagger/doc.json", port))))
+	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		content, err := front.FS.ReadFile("index.html")
+		if err != nil {
+			http.Error(w, "File not found", http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write(content)
+	})
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: router,
