@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lingva</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
+    <link rel="icon" href="data:,">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            height: 100vh;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .sidebar {
+            width: 50px;
+            background: #252526;
+            border-right: 1px solid #333;
+        }
+        .main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 10px 20px;
+            background: #2d2d30;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #333;
+        }
+        select, button {
+            background: #3c3c3c;
+            color: white;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover { background: #4a4a4a; }
+        button:disabled { background: #2b2b2b; color: #777; cursor: not-allowed; }
+        .editor-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #333;
+        }
+        .CodeMirror {
+            height: 100%;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+        }
+        .panel-bottom {
+            height: 300px;
+            background: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+        }
+        .tabs {
+            display: flex;
+            background: #2d2d30;
+            padding: 5px 10px 0;
+        }
+        .tab {
+            padding: 5px 15px;
+            background: #1e1e1e;
+            border-top: 2px solid transparent;
+            cursor: pointer;
+        }
+        .tab.active { border-top-color: #007acc; }
+        .output-area {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #tab-terminal {
+            outline: none;
+            cursor: text;
+        }
+        #tab-terminal:focus {
+            box-shadow: inset 0 0 5px rgba(0, 122, 204, 0.3);
+        }
+        .stdout { color: #d4d4d4; }
+        .stderr { color: #f44747; }
+        .diagnostic-warn { color: #cca700; }
+        .diagnostic-err { color: #f44747; }
+        .diagnostic-info { color: #3794ff; }
+        .stdin-echo { color: #4CAF50; }
+
+        .cursor::after {
+            content: '█';
+            animation: blink 1s step-start infinite;
+            color: #d4d4d4;
+            margin-left: 1px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+<div class="sidebar"></div>
+<div class="main">
+    <div class="header">
+        <select id="lang-select">
+            <option value="PYTHON">Python</option>
+             <option value="GO">Go</option>
+        </select>
+        <button id="btn-run">Run</button>
+        <button id="btn-stop" style="display: none; color: #f44747;">Остановить</button>
+    </div>
+
+    <div class="editor-container">
+        <textarea id="code-editor">print("Hello, World!")</textarea>
+    </div>
+
+    <div class="panel-bottom">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('terminal')">Terminal</div>
+            <div class="tab" onclick="switchTab('diagnostics')">Problems</div>
+        </div>
+
+        <div id="tab-terminal" class="output-area" tabindex="0"></div>
+
+        <div id="tab-diagnostics" class="output-area" style="display: none;"></div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+
+<script>
+    const host = "localhost:8080";
+
+    const LANG_CONFIG = {
+        "PYTHON": {
+            mode: "python",
+            cmScript: "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js",
+            defaultCode: "print(\"Hello, World!\")"
+        },
+        "GO": {
+            mode: "go",
+            cmScript: "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/go/go.min.js",
+            defaultCode: "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}"
+        },
+    };
+
+    const editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+        mode: LANG_CONFIG["PYTHON"].mode,
+        theme: "monokai",
+        lineNumbers: true,
+        indentUnit: 4,
+        matchBrackets: true
+    });
+
+    editor.setValue(LANG_CONFIG["PYTHON"].defaultCode);
+
+    const btnRun = document.getElementById("btn-run");
+    const btnStop = document.getElementById("btn-stop");
+    const langSelect = document.getElementById("lang-select");
+    const terminalOut = document.getElementById("tab-terminal");
+    const diagOut = document.getElementById("tab-diagnostics");
+
+    const loadedScripts = new Set([LANG_CONFIG["PYTHON"].cmScript]);
+
+    function loadScript(url) {
+        return new Promise((resolve, reject) => {
+            if (loadedScripts.has(url)) return resolve();
+            const script = document.createElement('script');
+            script.src = url;
+            script.onload = () => { loadedScripts.add(url); resolve(); };
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    langSelect.addEventListener("change", async (e) => {
+        const langCode = e.target.value;
+        const config = LANG_CONFIG[langCode];
+
+        if (config) {
+            try {
+                await loadScript(config.cmScript);
+                editor.setOption("mode", config.mode);
+
+                if (editor.getValue().trim() === "") {
+                    editor.setValue(config.defaultCode);
+                }
+            } catch (err) {
+                console.error("Cannot load syntax for: ", langCode);
+            }
+        }
+    });
+
+    let ws = null;
+
+    let terminalInputBuffer = "";
+    let terminalInputSpan = null;
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        terminalOut.style.display = tabName === 'terminal' ? 'block' : 'none';
+        diagOut.style.display = tabName === 'diagnostics' ? 'block' : 'none';
+
+        if (tabName === 'terminal' && ws && ws.readyState === WebSocket.OPEN) {
+            terminalOut.focus();
+        }
+    }
+
+    let debounceTimer;
+
+    async function runAnalysis() {
+        const payload = {
+            Code: editor.getValue(),
+            Lang: langSelect.value
+        };
+
+        try {
+            const response = await fetch(`http://${host}/rest/analyze`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const resData = await response.json();
+            diagOut.innerHTML = "";
+
+            if (response.ok) {
+                const diagnostics = (resData.data && resData.data.diagnostics) ? resData.data.diagnostics : [];
+
+                if (diagnostics.length === 0) {
+                    diagOut.innerHTML = "<span class='diagnostic-info'></span>";
+                } else {
+                    diagnostics.forEach(diag => {
+                        const sevClass = diag.severity === 0 ? "diagnostic-err" :
+                            (diag.severity === 1 ? "diagnostic-warn" : "diagnostic-info");
+                        const sevText = diag.severity === 0 ? "[ERROR]" :
+                            (diag.severity === 1 ? "[WARN]" : "[INFO]");
+
+                        diagOut.innerHTML += `<div class="${sevClass}">Line ${diag.line}, Col ${diag.column}: ${sevText} ${diag.message}</div>`;
+                    });
+                }
+            } else {
+                diagOut.innerHTML = `<span class="diagnostic-err">Analyze Error: ${resData.message || 'Bad Request'}</span>`;
+            }
+        } catch (err) {
+            diagOut.innerHTML = `<span class="diagnostic-err">Connection Error ${err.message}</span>`;
+        }
+    }
+
+    editor.on("change", () => {
+        clearTimeout(debounceTimer);
+        if (diagOut.style.display === 'block') {
+            diagOut.innerHTML = "<span class='diagnostic-info'>Analyzing...</span>";
+        }
+        debounceTimer = setTimeout(() => runAnalysis(), 800);
+    });
+
+    runAnalysis();
+
+    function initInputSpan() {
+        if (terminalInputSpan && terminalOut.contains(terminalInputSpan)) {
+            terminalInputSpan.classList.remove('cursor');
+        }
+        terminalInputSpan = document.createElement('span');
+        terminalInputSpan.className = 'stdin-echo cursor';
+        terminalOut.appendChild(terminalInputSpan);
+        terminalOut.scrollTop = terminalOut.scrollHeight;
+    }
+
+    function appendToTerminal(text, type = 'stdout') {
+        const span = document.createElement('span');
+        span.className = type;
+        span.textContent = text;
+
+        if (terminalInputSpan && terminalOut.contains(terminalInputSpan)) {
+            terminalOut.insertBefore(span, terminalInputSpan);
+        } else {
+            terminalOut.appendChild(span);
+        }
+        terminalOut.scrollTop = terminalOut.scrollHeight;
+    }
+
+    terminalOut.addEventListener('keydown', (e) => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+        if (e.ctrlKey || e.altKey || e.metaKey || (e.key.length > 1 && e.key !== 'Enter' && e.key !== 'Backspace')) {
+            return;
+        }
+
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const textToSend = terminalInputBuffer + '\n';
+            ws.send(JSON.stringify({ stdin: textToSend }));
+
+            terminalInputSpan.textContent = terminalInputBuffer + '\n';
+            terminalInputSpan.classList.remove('cursor');
+
+            terminalInputBuffer = "";
+            initInputSpan();
+
+        } else if (e.key === 'Backspace') {
+            e.preventDefault();
+            if (terminalInputBuffer.length > 0) {
+                terminalInputBuffer = terminalInputBuffer.slice(0, -1);
+                terminalInputSpan.textContent = terminalInputBuffer;
+            }
+        } else if (e.key.length === 1) {
+            e.preventDefault();
+            terminalInputBuffer += e.key;
+            terminalInputSpan.textContent = terminalInputBuffer;
+        }
+        terminalOut.scrollTop = terminalOut.scrollHeight;
+    });
+
+    btnRun.addEventListener("click", () => {
+        terminalOut.innerHTML = "";
+        document.querySelectorAll('.tab')[0].click();
+
+        btnRun.style.display = "none";
+        btnStop.style.display = "block";
+
+        ws = new WebSocket(`ws://${host}/ws/run`);
+
+        ws.onopen = () => {
+            appendToTerminal(`[System] Connected\n`, 'diagnostic-info');
+
+            const setupPayload = {
+                setup: {
+                    Lang: langSelect.value,
+                    Code: editor.getValue()
+                }
+            };
+            ws.send(JSON.stringify(setupPayload));
+
+            terminalInputBuffer = "";
+            initInputSpan();
+            terminalOut.focus();
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                if (data.stdout) {
+                    appendToTerminal(data.stdout, 'stdout');
+                }
+                if (data.stderr) {
+                    appendToTerminal(data.stderr, 'stderr');
+                }
+
+                if (data.is_finished) {
+                    appendToTerminal(`\n[System] Program finished.\n`, 'diagnostic-info');
+                    closeConnection();
+                }
+            } catch (e) {
+                appendToTerminal(`\n[System] Parse Error: ${event.data}\n`, 'stderr');
+            }
+        };
+
+        ws.onerror = (error) => {
+            appendToTerminal(`\n[System] Connection Error\n`, 'diagnostic-err');
+        };
+
+        ws.onclose = () => {
+            closeConnection();
+        };
+    });
+
+    btnStop.addEventListener("click", () => {
+        if (ws) {
+            ws.close();
+            appendToTerminal(`\n[System] Выполнение прервано пользователем.\n`, 'diagnostic-warn');
+        }
+    });
+
+    function closeConnection() {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.close();
+        }
+        ws = null;
+        btnRun.style.display = "block";
+        btnStop.style.display = "none";
+
+        if (terminalInputSpan) {
+            terminalInputSpan.classList.remove('cursor');
+        }
+    }
+</script>
+</body>
+</html>

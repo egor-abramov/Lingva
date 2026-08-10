@@ -1,0 +1,117 @@
+basePath: /
+definitions:
+  lingva_api_gen.AnalyzeResponse:
+    properties:
+      diagnostics:
+        items:
+          $ref: '#/definitions/lingva_api_gen.Diagnostic'
+        type: array
+    type: object
+  lingva_api_gen.Diagnostic:
+    properties:
+      column:
+        type: integer
+      line:
+        type: integer
+      message:
+        type: string
+      severity:
+        $ref: '#/definitions/lingva_api_gen.Severity'
+    type: object
+  lingva_api_gen.Severity:
+    enum:
+    - 0
+    - 1
+    - 2
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - Severity_ERROR
+    - Severity_WARNING
+    - Severity_INFO
+  lingva_pkg_rest.Response-any:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  lingva_pkg_rest.Response-lingva_api_gen_AnalyzeResponse:
+    properties:
+      data:
+        $ref: '#/definitions/lingva_api_gen.AnalyzeResponse'
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  services_gateway_internal_transport_rest.AnalyzeRequestDTO:
+    properties:
+      Code:
+        type: string
+      Lang:
+        type: string
+    required:
+    - Code
+    - Lang
+    type: object
+  services_gateway_internal_transport_websocket.WSResponse:
+    properties:
+      is_finished:
+        type: boolean
+      stderr:
+        type: string
+      stdout:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: Lingva Gateway API
+paths:
+  /rest/analyze:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services_gateway_internal_transport_rest.AnalyzeRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/lingva_pkg_rest.Response-lingva_api_gen_AnalyzeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/lingva_pkg_rest.Response-any'
+      summary: Code analyzing
+      tags:
+      - analyze
+  /ws/run:
+    get:
+      consumes:
+      - application/json
+      description: Connect to websocket
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services_gateway_internal_transport_websocket.WSResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/services_gateway_internal_transport_websocket.WSResponse'
+      summary: Run code
+      tags:
+      - run
+swagger: "2.0"
