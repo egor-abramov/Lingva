@@ -30,3 +30,7 @@ tasks:
   swag:
     cmds:
       - swag init -g ./services/gateway/cmd/main.go -o ./docs --parseDependency --parseInternal
+  pull:
+    cmds:
+      - docker pull alpine/flake8:latest
+      - docker pull python:3.11-alpine
