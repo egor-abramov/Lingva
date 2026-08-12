@@ -23,8 +23,10 @@ jobs:
 
       - name: Pull Docker Images
         run: |
-          docker pull alpine/flake8:latest
-          docker pull python:3.11-alpine
+            docker pull alpine/flake8:latest
+            docker pull python:3.11-alpine
+            docker pull golang:1.24-alpine
+            docker pull gcc:latest
 
       - name: Lint Code
         uses: golangci/golangci-lint-action@v9
