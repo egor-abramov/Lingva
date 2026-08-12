@@ -1,0 +1,18 @@
+input:
+    lang: Cpp
+    code: |-
+        int calculate_sum(int a, int b) {
+            return a + b
+        }
+
+        int main() {
+            if (calculate_sum(1, 2) > 0) {
+                return 1;
+            }
+            return 0;
+        }
+output:
+    - line: 2
+      column: 17
+      message: "expected ';' before '}' token"
+      severity: Error

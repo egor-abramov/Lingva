@@ -34,3 +34,5 @@ tasks:
     cmds:
       - docker pull alpine/flake8:latest
       - docker pull python:3.11-alpine
+      - docker pull golang:1.24-alpine
+      - docker pull gcc:latest

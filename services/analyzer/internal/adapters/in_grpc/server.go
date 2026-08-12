@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"lingva/api/gen"
+	l "lingva/pkg/lang"
 	"lingva/services/analyzer/internal/core/domain"
 
 	"google.golang.org/grpc"
@@ -26,9 +27,9 @@ func (a *analyzerAPI) Analyze(ctx context.Context, req *gen.AnalyzeRequest) (*ge
 	lang := req.GetLang()
 	code := req.GetCode()
 	job := domain.AnalyzeJob{
-		Lang:      domain.Language(lang),
+		Lang:      l.Language(lang),
 		Code:      code,
-		TimeoutMS: 5000,
+		TimeoutMS: 10000,
 	}
 
 	resp, err := a.analyzer.Analyze(ctx, job)

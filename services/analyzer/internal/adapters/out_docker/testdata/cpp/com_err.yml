@@ -1,0 +1,23 @@
+input:
+    lang: Cpp
+    code: |-
+        #include <iostream>
+        #include <string>
+
+        void greet(const std::string& name) {
+            std::cout << "Hello\n";
+            std::cout << unknownVar << "\n";
+        }
+output:
+    - line: 0
+      column: 0
+      message: ""
+      severity: Info
+    - line: 6
+      column: 18
+      message: "'unknownVar' was not declared in this scope"
+      severity: Error
+    - line: 4
+      column: 31
+      message: "unused parameter 'name' [-Wunused-parameter]"
+      severity: Warning

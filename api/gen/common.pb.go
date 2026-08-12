@@ -25,15 +25,24 @@ type Language int32
 
 const (
 	Language_PYTHON Language = 0
+	Language_GO     Language = 1
+	Language_C      Language = 2
+	Language_CPP    Language = 3
 )
 
 // Enum value maps for Language.
 var (
 	Language_name = map[int32]string{
 		0: "PYTHON",
+		1: "GO",
+		2: "C",
+		3: "CPP",
 	}
 	Language_value = map[string]int32{
 		"PYTHON": 0,
+		"GO":     1,
+		"C":      2,
+		"CPP":    3,
 	}
 )
 
@@ -68,10 +77,13 @@ var File_common_proto protoreflect.FileDescriptor
 
 const file_common_proto_rawDesc = "" +
 	"\n" +
-	"\fcommon.proto\x12\x06common*\x16\n" +
+	"\fcommon.proto\x12\x06common*.\n" +
 	"\bLanguage\x12\n" +
 	"\n" +
-	"\x06PYTHON\x10\x00B\x10Z\x0elingva/api/genb\x06proto3"
+	"\x06PYTHON\x10\x00\x12\x06\n" +
+	"\x02GO\x10\x01\x12\x05\n" +
+	"\x01C\x10\x02\x12\a\n" +
+	"\x03CPP\x10\x03B\x10Z\x0elingva/api/genb\x06proto3"
 
 var (
 	file_common_proto_rawDescOnce sync.Once

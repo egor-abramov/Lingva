@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"lingva/api/gen"
+	l "lingva/pkg/lang"
 	"lingva/services/runner/internal/core/domain"
 
 	"google.golang.org/grpc"
@@ -35,7 +36,7 @@ func (r *runnerAPI) ExecuteCode(stream gen.CodeRunService_ExecuteCodeServer) err
 
 	ctx := stream.Context()
 	job := domain.ExecutionJob{
-		Lang:       domain.Language(setup.GetLang()),
+		Lang:       l.Language(setup.GetLang()),
 		TimeoutMS:  5000,
 		SourceCode: setup.GetCode(),
 	}

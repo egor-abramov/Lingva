@@ -1,11 +1,11 @@
 input:
-  lang: Python
-  code: |-
-    def greet(name):
-        print("Hello")
-            print(name)
+    lang: Python
+    code: |-
+        def greet(name):
+            print("Hello")
+                print(name)
 output:
-  - line: 3
-    column: 9
-    message: "IndentationError: unexpected indent"
-    severity: Error
+    - line: 3
+      column: 9
+      message: "IndentationError: unexpected indent"
+      severity: Error

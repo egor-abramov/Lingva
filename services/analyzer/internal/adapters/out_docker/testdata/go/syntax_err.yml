@@ -1,0 +1,19 @@
+input:
+    lang: Go
+    code: |-
+        package main
+
+        func calculate_sum(a, b int) int {
+            return a + b
+        }
+
+        func main() {
+            if calculate_sum(1, 2) > 0
+                println("Positive")
+            }
+        }
+output:
+    - line: 9
+      column: 28
+      message: "syntax error: unexpected newline, expected { after if clause"
+      severity: Error

@@ -6,4 +6,7 @@ option go_package = "lingva/api/gen";
 
 enum Language {
   PYTHON = 0;
+  GO = 1;
+  C = 2;
+  CPP = 3;
 }

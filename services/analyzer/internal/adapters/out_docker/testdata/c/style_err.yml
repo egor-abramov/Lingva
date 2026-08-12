@@ -1,0 +1,13 @@
+input:
+    lang: C
+    code: |-
+        int MyFunction() {
+            int x = 1 + 2;
+            int y = x * 5;
+            return 0;
+        }
+output:
+    - line: 3
+      column: 9
+      message: "unused variable 'y' [-Wunused-variable]"
+      severity: Warning

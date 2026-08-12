@@ -1,0 +1,39 @@
+input:
+    lang: C
+    code: |
+        #include <stdio.h>
+
+        int factorial(int n) {
+            if (n == 0) {
+                return 1;
+            }
+            return n * factorial(n - 1);
+        }
+
+        int main() {
+            int n;
+            if (scanf("%d", &n) != 1) return 0;
+
+            for (int i = 0; i < n; i++) {
+                int val;
+                if (scanf("%d", &val) == 1) {
+                    printf("%d\n", factorial(val));
+                }
+            }
+            return 0;
+        }
+    stdin:
+        - |
+          3
+        - |
+          5
+        - |
+          7
+        - |
+          0
+output:
+    stdout: |
+        120
+        5040
+        1
+    stderr: ""

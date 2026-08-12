@@ -1,0 +1,26 @@
+input:
+    lang: Go
+    code: |
+        package main
+
+        import (
+            "fmt"
+            "net/http"
+            "time"
+        )
+
+        func main() {
+            client := http.Client{Timeout: 2 * time.Second}
+            resp, err := client.Get("http://httpbin.org/get")
+            if err != nil {
+                fmt.Printf("FAILED: %v\n", err)
+                return
+            }
+            defer resp.Body.Close()
+            fmt.Printf("SUCCESS: %s\n", resp.Status)
+        }
+    stdin: []
+output:
+    stdout: |
+        FAILED: Get "http://httpbin.org/get": dial tcp: lookup httpbin.org on [::1]:53: read udp [::1]:46113->[::1]:53: read: connection refused
+    stderr: ""

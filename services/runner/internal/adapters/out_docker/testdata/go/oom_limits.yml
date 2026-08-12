@@ -1,0 +1,21 @@
+input:
+    lang: Go
+    code: |
+        package main
+
+        import "fmt"
+
+        func main() {
+            fmt.Println("Allocating memory...")
+            var arr [][]byte
+            for {
+                arr = append(arr, make([]byte, 1024*1024*100)) // Аллоцируем кусками по 100MB
+            }
+            fmt.Println("If you see this, the memory limit FAILED!")
+        }
+    stdin: []
+output:
+    stdout: |
+        Allocating memory...
+    stderr: |
+        signal: killed

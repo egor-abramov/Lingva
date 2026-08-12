@@ -1,0 +1,24 @@
+input:
+    lang: C
+    code: |
+        #include <stdio.h>
+        #include <errno.h>
+        #include <string.h>
+
+        int main() {
+            const char *filePath = "/tmp/hacked.txt";
+            FILE *file = fopen(filePath, "w");
+            if (file == NULL) {
+                printf("OS Error: open %s: %s\n", filePath, strerror(errno));
+                return 0;
+            }
+            fprintf(file, "You have been compromised!");
+            fclose(file);
+            printf("File written successfully.\n");
+            return 0;
+        }
+    stdin: []
+output:
+    stdout: |
+        OS Error: open /tmp/hacked.txt: Read-only file system
+    stderr: ""

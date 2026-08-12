@@ -1,7 +1,8 @@
 input:
     lang: Python
-    code: ""
+    code: print('hello world!')
     stdin: []
 output:
-    stdout: ""
+    stdout: |
+        hello world!
     stderr: ""

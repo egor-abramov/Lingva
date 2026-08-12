@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	l "lingva/pkg/lang"
+	"lingva/services/analyzer/internal/adapters/out_docker/parsers"
 	"lingva/services/analyzer/internal/core/domain"
 	"log/slog"
 
@@ -32,9 +34,22 @@ func (a *DockerSandbox) Run(ctx context.Context, job domain.AnalyzeJob) (domain.
 	var cmd []string
 
 	switch job.Lang {
-	case domain.Python:
+	case l.Python:
 		image = "alpine/flake8:latest"
-		cmd = []string{"flake8", "-"}
+		cmd = []string{"-"}
+	case l.Go:
+		image = "golang:1.24-alpine"
+		cmd = []string{
+			"sh",
+			"-c",
+			"cat > main.go && go build -o /dev/null main.go && go vet main.go",
+		}
+	case l.C:
+		image = "gcc:latest"
+		cmd = []string{"gcc", "-fsyntax-only", "-Wall", "-Wextra", "-x", "c", "-"}
+	case l.Cpp:
+		image = "gcc:latest"
+		cmd = []string{"g++", "-fsyntax-only", "-Wall", "-Wextra", "-x", "c++", "-"}
 	default:
 		return nil, fmt.Errorf("%s: unsupported language %s", op, job.Lang)
 
@@ -52,6 +67,21 @@ func (a *DockerSandbox) Run(ctx context.Context, job domain.AnalyzeJob) (domain.
 	}
 	hostConfig := &container.HostConfig{
 		AutoRemove: true,
+	}
+
+	if job.Lang == l.Go {
+		config.WorkingDir = "/workspace"
+		config.Env = []string{
+			"CGO_ENABLED=0",
+			"GOCACHE=/gocache",
+			"TMPDIR=/workspace",
+		}
+		hostConfig.Binds = []string{
+			"/var/lib/lingva/gocache:/gocache",
+		}
+		hostConfig.Tmpfs = map[string]string{
+			"/workspace": "rw,exec,nosuid,size=128m",
+		}
 	}
 
 	resp, err := a.cli.ContainerCreate(ctx, config, hostConfig, nil, nil, "")
@@ -101,8 +131,12 @@ func (a *DockerSandbox) Run(ctx context.Context, job domain.AnalyzeJob) (domain.
 	}
 
 	switch job.Lang {
-	case domain.Python:
-		return parseFlake8(stdout.String(), stderr.String()), nil
+	case l.Python:
+		return parsers.Flake8(stdout.String(), stderr.String()), nil //[cite: 15]
+	case l.Go:
+		return parsers.Go(stderr.String()), nil
+	case l.C, l.Cpp:
+		return parsers.Gcc(stderr.String()), nil
 	}
 	return nil, fmt.Errorf("%s: unsupported language %s", op, job.Lang)
 }

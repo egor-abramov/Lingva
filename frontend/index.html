@@ -16,16 +16,19 @@
             background-color: #1e1e1e;
             color: #d4d4d4;
         }
+
         .sidebar {
             width: 50px;
             background: #252526;
             border-right: 1px solid #333;
         }
+
         .main {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
         }
+
         .header {
             padding: 10px 20px;
             background: #2d2d30;
@@ -34,6 +37,7 @@
             gap: 15px;
             border-bottom: 1px solid #333;
         }
+
         select, button {
             background: #3c3c3c;
             color: white;
@@ -42,37 +46,54 @@
             border-radius: 3px;
             cursor: pointer;
         }
-        button:hover { background: #4a4a4a; }
-        button:disabled { background: #2b2b2b; color: #777; cursor: not-allowed; }
+
+        button:hover {
+            background: #4a4a4a;
+        }
+
+        button:disabled {
+            background: #2b2b2b;
+            color: #777;
+            cursor: not-allowed;
+        }
+
         .editor-container {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             border-bottom: 1px solid #333;
         }
+
         .CodeMirror {
             height: 100%;
             font-family: 'Consolas', monospace;
             font-size: 14px;
         }
+
         .panel-bottom {
             height: 300px;
             background: #1e1e1e;
             display: flex;
             flex-direction: column;
         }
+
         .tabs {
             display: flex;
             background: #2d2d30;
             padding: 5px 10px 0;
         }
+
         .tab {
             padding: 5px 15px;
             background: #1e1e1e;
             border-top: 2px solid transparent;
             cursor: pointer;
         }
-        .tab.active { border-top-color: #007acc; }
+
+        .tab.active {
+            border-top-color: #007acc;
+        }
+
         .output-area {
             flex-grow: 1;
             padding: 10px;
@@ -87,15 +108,34 @@
             outline: none;
             cursor: text;
         }
+
         #tab-terminal:focus {
             box-shadow: inset 0 0 5px rgba(0, 122, 204, 0.3);
         }
-        .stdout { color: #d4d4d4; }
-        .stderr { color: #f44747; }
-        .diagnostic-warn { color: #cca700; }
-        .diagnostic-err { color: #f44747; }
-        .diagnostic-info { color: #3794ff; }
-        .stdin-echo { color: #4CAF50; }
+
+        .stdout {
+            color: #d4d4d4;
+        }
+
+        .stderr {
+            color: #f44747;
+        }
+
+        .diagnostic-warn {
+            color: #cca700;
+        }
+
+        .diagnostic-err {
+            color: #f44747;
+        }
+
+        .diagnostic-info {
+            color: #3794ff;
+        }
+
+        .stdin-echo {
+            color: #4CAF50;
+        }
 
         .cursor::after {
             content: '█';
@@ -103,7 +143,12 @@
             color: #d4d4d4;
             margin-left: 1px;
         }
-        @keyframes blink { 50% { opacity: 0; } }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -112,7 +157,9 @@
     <div class="header">
         <select id="lang-select">
             <option value="PYTHON">Python</option>
-             <option value="GO">Go</option>
+            <option value="GO">Go</option>
+            <option value="C">C</option>
+            <option value="CPP">C++</option>
         </select>
         <button id="btn-run">Run</button>
         <button id="btn-stop" style="display: none; color: #f44747;">Остановить</button>
@@ -151,6 +198,16 @@
             cmScript: "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/go/go.min.js",
             defaultCode: "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}"
         },
+        "C": {
+            mode: "text/x-csrc",
+            cmScript: "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js",
+            defaultCode: "#include <stdio.h>\n\nint main() {\n    printf(\"Hello, World!\\n\");\n    return 0;\n}"
+        },
+        "CPP": {
+            mode: "text/x-c++src",
+            cmScript: "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js",
+            defaultCode: "#include <iostream>\n\nint main() {\n    std::cout << \"Hello, World!\\n\";\n    return 0;\n}"
+        }
     };
 
     const editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
@@ -176,7 +233,10 @@
             if (loadedScripts.has(url)) return resolve();
             const script = document.createElement('script');
             script.src = url;
-            script.onload = () => { loadedScripts.add(url); resolve(); };
+            script.onload = () => {
+                loadedScripts.add(url);
+                resolve();
+            };
             script.onerror = reject;
             document.head.appendChild(script);
         });
@@ -227,7 +287,7 @@
         try {
             const response = await fetch(`http://${host}/rest/analyze`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(payload)
             });
 
@@ -241,10 +301,21 @@
                     diagOut.innerHTML = "<span class='diagnostic-info'></span>";
                 } else {
                     diagnostics.forEach(diag => {
-                        const sevClass = diag.severity === 0 ? "diagnostic-err" :
-                            (diag.severity === 1 ? "diagnostic-warn" : "diagnostic-info");
-                        const sevText = diag.severity === 0 ? "[ERROR]" :
-                            (diag.severity === 1 ? "[WARN]" : "[INFO]");
+                        let sevClass = "diagnostic-info";
+                        let sevText = "[INFO]";
+
+                        const sev = diag.severity !== undefined ? String(diag.severity).toUpperCase() : "ERROR";
+
+                        if (sev === "0" || sev === "ERROR") {
+                            sevClass = "diagnostic-err";
+                            sevText = "[ERROR]";
+                        } else if (sev === "1" || sev === "WARNING") {
+                            sevClass = "diagnostic-warn";
+                            sevText = "[WARN]";
+                        } else {
+                            sevClass = "diagnostic-info";
+                            sevText = "[INFO]";
+                        }
 
                         diagOut.innerHTML += `<div class="${sevClass}">Line ${diag.line}, Col ${diag.column}: ${sevText} ${diag.message}</div>`;
                     });
@@ -300,7 +371,7 @@
         if (e.key === 'Enter') {
             e.preventDefault();
             const textToSend = terminalInputBuffer + '\n';
-            ws.send(JSON.stringify({ stdin: textToSend }));
+            ws.send(JSON.stringify({stdin: textToSend}));
 
             terminalInputSpan.textContent = terminalInputBuffer + '\n';
             terminalInputSpan.classList.remove('cursor');

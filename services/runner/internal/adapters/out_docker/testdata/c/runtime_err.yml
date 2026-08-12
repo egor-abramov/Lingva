@@ -1,0 +1,21 @@
+input:
+    lang: C
+    code: |
+        #include <stdio.h>
+
+        int divide(int a, int b) {
+            return a / b;
+        }
+
+        int main() {
+            printf("Starting calculation...\n");
+            volatile int a = 10, b = 0;
+            int result = divide(a, b);
+            printf("This line will never be reached. %d\n", result);
+            return 0;
+        }
+    stdin: []
+output:
+    stdout: ""
+    stderr: |
+        Floating point exception (core dumped)

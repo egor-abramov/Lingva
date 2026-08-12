@@ -1,0 +1,22 @@
+input:
+    lang: C
+    code: |-
+        #include <stdio.h>
+
+        void greet(const char* name) {
+            printf("Hello\n");
+            printf("%s\n", unknownVar);
+        }
+output:
+    - line: 5
+      column: 20
+      message: "'unknownVar' undeclared (first use in this function)"
+      severity: Error
+    - line: 5
+      column: 20
+      message: "each undeclared identifier is reported only once for each function it appears in"
+      severity: Info
+    - line: 3
+      column: 24
+      message: "unused parameter 'name' [-Wunused-parameter]"
+      severity: Warning

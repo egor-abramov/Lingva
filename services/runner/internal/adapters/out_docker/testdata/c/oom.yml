@@ -1,0 +1,23 @@
+input:
+    lang: C
+    code: |
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <string.h>
+
+        int main() {
+            printf("Allocating memory...\n");
+            while (1) {
+                void *ptr = malloc(1024 * 1024 * 100);
+                if (ptr != NULL) {
+                    memset(ptr, 0, 1024 * 1024 * 100);
+                }
+            }
+            printf("If you see this, the memory limit FAILED!\n");
+            return 0;
+        }
+    stdin: []
+output:
+    stdout: ""
+    stderr: |
+        Killed

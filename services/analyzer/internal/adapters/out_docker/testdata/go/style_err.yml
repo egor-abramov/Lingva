@@ -1,0 +1,27 @@
+input:
+    lang: Go
+    code: |-
+        package main
+
+        import (
+            "fmt"
+            "os"
+        )
+
+        func MyFunction() {
+            x := 1 + 2
+            y := x * 5
+        }
+output:
+    - line: 4
+      column: 5
+      message: "\"fmt\" imported and not used"
+      severity: Error
+    - line: 5
+      column: 5
+      message: "\"os\" imported and not used"
+      severity: Error
+    - line: 10
+      column: 5
+      message: "declared and not used: y"
+      severity: Error

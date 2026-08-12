@@ -1,0 +1,24 @@
+input:
+    lang: C
+    code: |
+        #include <stdio.h>
+        #include <netdb.h>
+        #include <sys/types.h>
+        #include <sys/socket.h>
+
+        int main() {
+            struct addrinfo *res;
+            int err = getaddrinfo("httpbin.org", "80", NULL, &res);
+            if (err != 0) {
+                printf("FAILED: lookup httpbin.org: %s\n", gai_strerror(err));
+                return 0;
+            }
+            printf("SUCCESS\n");
+            freeaddrinfo(res);
+            return 0;
+        }
+    stdin: []
+output:
+    stdout: |
+        FAILED: lookup httpbin.org: Temporary failure in name resolution
+    stderr: ""

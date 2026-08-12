@@ -1,0 +1,16 @@
+input:
+    lang: Go
+    code: |
+        package main
+
+        import "fmt"
+
+        func main() {
+            fmt.Printnn("Hello World!")
+        }
+    stdin: []
+output:
+    stdout: ""
+    stderr: |
+        # command-line-arguments
+        ./main.go:6:9: undefined: fmt.Printnn

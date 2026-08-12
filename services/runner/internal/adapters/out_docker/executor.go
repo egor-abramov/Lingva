@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	l "lingva/pkg/lang"
 	"lingva/services/runner/internal/core/domain"
 	"log/slog"
 
@@ -32,9 +33,36 @@ func (s *DockerSandbox) Run(ctx context.Context, job domain.ExecutionJob, stdin 
 	var cmd []string
 
 	switch job.Lang {
-	case domain.Python:
+	case l.Python:
 		image = "python:3.11-alpine"
 		cmd = []string{"python3", "-u", "-c", job.SourceCode}
+	case l.Go:
+		image = "golang:1.24-alpine"
+		cmd = []string{
+			"sh",
+			"-c",
+			"printf \"%s\" \"$1\" > main.go && go run main.go",
+			"run-go",
+			job.SourceCode,
+		}
+	case l.C:
+		image = "gcc:latest"
+		cmd = []string{
+			"sh",
+			"-c",
+			"printf \"%s\" \"$1\" > main.c && gcc -Wall main.c -o main && ./main",
+			"run-c",
+			job.SourceCode,
+		}
+	case l.Cpp:
+		image = "gcc:latest"
+		cmd = []string{
+			"sh",
+			"-c",
+			"printf \"%s\" \"$1\" > main.cpp && g++ -Wall main.cpp -o main && ./main",
+			"run-cpp",
+			job.SourceCode,
+		}
 	default:
 		return nil, fmt.Errorf("%s: unsupported language %s", op, job.Lang)
 	}
@@ -49,15 +77,27 @@ func (s *DockerSandbox) Run(ctx context.Context, job domain.ExecutionJob, stdin 
 		AttachStdout:    true,
 		AttachStderr:    true,
 		NetworkDisabled: true,
+
+		WorkingDir: "/workspace",
+
+		Env: []string{
+			"GOCACHE=/gocache",
+			"TMPDIR=/workspace",
+			"CGO_ENABLED=0",
+		},
 	}
-	pidsLimit := int64(64)
+	pidsLimit := int64(512)
 
 	hostConfig := &container.HostConfig{
 		AutoRemove: true,
 
+		Binds: []string{
+			"/var/lib/lingva/gocache:/gocache",
+		},
+
 		Resources: container.Resources{
-			Memory:     128 * 1024 * 1024,
-			MemorySwap: 128 * 1024 * 1024,
+			Memory:     2048 * 1024 * 1024,
+			MemorySwap: -1,
 			NanoCPUs:   1_000_000_000,
 			PidsLimit:  &pidsLimit,
 		},
@@ -65,6 +105,10 @@ func (s *DockerSandbox) Run(ctx context.Context, job domain.ExecutionJob, stdin 
 		ReadonlyRootfs: true,
 		CapDrop:        []string{"ALL"},
 		SecurityOpt:    []string{"no-new-privileges:true"},
+
+		Tmpfs: map[string]string{
+			"/workspace": "rw,exec,nosuid,size=256m",
+		},
 	}
 	resp, err := s.cli.ContainerCreate(ctx, config, hostConfig, nil, nil, "")
 

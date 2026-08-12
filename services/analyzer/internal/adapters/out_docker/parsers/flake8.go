@@ -1,4 +1,4 @@
-package out_docker
+package parsers
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func parseFlake8(stdout string, stderr string) domain.AnalyzeResult {
+func Flake8(stdout string, stderr string) domain.AnalyzeResult {
 	var diagnostics []domain.Diagnostic
 	scanner := bufio.NewScanner(strings.NewReader(stdout))
 

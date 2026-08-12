@@ -1,0 +1,16 @@
+input:
+    lang: Go
+    code: |-
+        package main
+
+        import "fmt"
+
+        func greet(name string) {
+            fmt.Println("Hello")
+            fmt.Println(unknownVar)
+        }
+output:
+    - line: 7
+      column: 17
+      message: "undefined: unknownVar"
+      severity: Error
